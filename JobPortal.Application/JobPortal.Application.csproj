@@ -8,11 +8,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\JobPortal.Domain\JobPortal.Domain.csproj" />
-    <ProjectReference Include="..\JobPortal.Infrastructure\JobPortal.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Interfaces\" />
     <Folder Include="Services\" />
   </ItemGroup>
 

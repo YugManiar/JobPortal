@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\JobPortal.Domain\JobPortal.Domain.csproj" />
+    <ProjectReference Include="..\JobPortal.Application\JobPortal.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>
