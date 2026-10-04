@@ -1,0 +1,88 @@
+﻿@model JobPortal.Web.Models.ViewModels.JobCreateViewModel
+@{
+    ViewData["Title"] = "Post a Job";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <h2 class="fw-bold mb-1">Post a New Job</h2>
+            <p class="text-muted mb-4">Fill in the details below — candidates will see this on the job board immediately.</p>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+
+                    <form asp-action="Create" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none-empty"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-semibold"></label>
+                            <input asp-for="Title" class="form-control" placeholder="e.g. Senior .NET Developer" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-semibold"></label>
+                            <textarea asp-for="Description" class="form-control" rows="5"
+                                      placeholder="Responsibilities, requirements, benefits..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Location" class="form-label fw-semibold"></label>
+                                <input asp-for="Location" class="form-control" placeholder="City, state or 'Remote'" />
+                                <span asp-validation-for="Location" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="JobType" class="form-label fw-semibold"></label>
+                                <select asp-for="JobType" asp-items="Model.JobTypeOptions" class="form-select">
+                                    <option value="">Select job type</option>
+                                </select>
+                                <span asp-validation-for="JobType" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SalaryMin" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="SalaryMin" class="form-control" placeholder="Optional" />
+                                </div>
+                                <span asp-validation-for="SalaryMin" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="SalaryMax" class="form-label fw-semibold"></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input asp-for="SalaryMax" class="form-control" placeholder="Optional" />
+                                </div>
+                                <span asp-validation-for="SalaryMax" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ApplicationDeadlineUtc" class="form-label fw-semibold"></label>
+                            <input asp-for="ApplicationDeadlineUtc" class="form-control" style="max-width: 250px;" />
+                            <span asp-validation-for="ApplicationDeadlineUtc" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-check-lg me-1"></i> Publish Job
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary px-4">Cancel</a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

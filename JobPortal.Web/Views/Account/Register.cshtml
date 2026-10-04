@@ -1,0 +1,79 @@
+﻿@model JobPortal.Web.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 mt-4">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-1">Create your account</h3>
+                    <p class="text-muted mb-4">Join as an employer or a candidate.</p>
+
+                    <form asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none-empty"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">I am registering as</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="Role" id="roleCandidate" value="Candidate"
+                                       checked onclick="toggleCompanyField(false)">
+                                <label class="btn btn-outline-primary" for="roleCandidate">Candidate</label>
+
+                                <input type="radio" class="btn-check" name="Role" id="roleEmployer" value="Employer"
+                                       onclick="toggleCompanyField(true)">
+                                <label class="btn btn-outline-primary" for="roleEmployer">Employer</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label fw-semibold"></label>
+                            <input asp-for="FullName" class="form-control" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3" id="companyNameGroup" style="display:none;">
+                            <label asp-for="CompanyName" class="form-label fw-semibold"></label>
+                            <input asp-for="CompanyName" class="form-control" placeholder="e.g. Acme Corp" />
+                            <span asp-validation-for="CompanyName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold"></label>
+                            <input asp-for="Email" class="form-control" autocomplete="username" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-semibold"></label>
+                            <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                    </form>
+
+                    <p class="text-center text-muted mt-3 mb-0">
+                        Already have an account? <a asp-action="Login">Log in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleCompanyField(show) {
+            document.getElementById('companyNameGroup').style.display = show ? 'block' : 'none';
+        }
+    </script>
+}

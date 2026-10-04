@@ -1,0 +1,121 @@
+﻿@model JobPortal.Web.Models.ViewModels.JobListViewModel
+@using JobPortal.Domain.Enums
+@{
+    ViewData["Title"] = "Browse Jobs";
+}
+
+<div class="bg-primary bg-gradient text-white py-5 mb-4 rounded-3">
+    <div class="container">
+        <h1 class="display-6 fw-bold mb-2">Find your next role</h1>
+        <p class="mb-0 opacity-75">Search active listings from employers hiring right now.</p>
+    </div>
+</div>
+
+<div class="container">
+
+    @if (TempData["SuccessMessage"] is not null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Search / Filter Bar -->
+    <form asp-action="Index" method="get" class="card shadow-sm mb-4 border-0">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small text-muted">Keyword</label>
+                    <input type="text" name="keyword" value="@Model.Filter.Keyword"
+                           class="form-control" placeholder="Job title or description" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Location</label>
+                    <input type="text" name="location" value="@Model.Filter.Location"
+                           class="form-control" placeholder="City or remote" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small text-muted">Job Type</label>
+                    <select name="jobType" class="form-select">
+                        <option value="">Any</option>
+                        @foreach (var type in Enum.GetValues<JobType>())
+                        {
+                            <option value="@type" selected="@(Model.Filter.JobType == type)">@type</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 text-muted">@Model.Jobs.Count open position@(Model.Jobs.Count == 1 ? "" : "s")</h5>
+        <a asp-action="Create" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> Post a Job
+        </a>
+    </div>
+
+    @if (!Model.Jobs.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-inbox display-4 d-block mb-3"></i>
+            <p class="mb-0">No jobs match your search right now. Try adjusting your filters.</p>
+        </div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var job in Model.Jobs)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-0 job-card">
+                        <div class="card-body d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <span class="badge bg-primary-subtle text-primary-emphasis">@job.JobType</span>
+                                <small class="text-muted">@job.PostedDateUtc.ToString("MMM dd")</small>
+                            </div>
+                            <h5 class="card-title fw-semibold">@job.Title</h5>
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-building me-1"></i>@job.CompanyName
+                            </p>
+                            <p class="text-muted small mb-3">
+                                <i class="bi bi-geo-alt me-1"></i>@job.Location
+                            </p>
+
+                            @if (job.SalaryMin.HasValue || job.SalaryMax.HasValue)
+                            {
+                                <p class="fw-semibold text-success mb-3">
+                                    @(job.SalaryMin?.ToString("C0")) - @(job.SalaryMax?.ToString("C0"))
+                                </p>
+                            }
+
+                            <div class="mt-auto">
+                                <a asp-action="Details" asp-route-id="@job.Id" class="btn btn-primary w-100">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    .job-card { transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .job-card:hover { transform: translateY(-4px); box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1) !important; }
+</style>
