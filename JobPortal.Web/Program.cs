@@ -33,6 +33,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 // Repository DI
 builder.Services.AddScoped<IJobRepository, JobRepository>();
+builder.Services.AddScoped<IJobApplicationRepository, JobApplicationRepository>();
 
 var app = builder.Build();
 
