@@ -40,6 +40,13 @@
                             </li>
                         }
 
+                        @if (User.IsInRole("Candidate"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Job" asp-action="MyApplications">My Applications</a>
+                            </li>
+                        }
+
     @if (User.Identity?.IsAuthenticated ?? false)
     {
         <li class="nav-item">
