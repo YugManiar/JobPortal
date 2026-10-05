@@ -36,6 +36,194 @@ namespace JobPortal.Web.Controllers
         // ============================================================
         // GET: /Job — public job board. Candidates browse/search here.
         // ============================================================
+
+        // ============================================================
+        // GET: /Job/MyJobs — Employer's own postings.
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> MyJobs(CancellationToken cancellationToken)
+        {
+            var employerId = _userManager.GetUserId(User)!;
+
+            try
+            {
+                var jobs = await _jobRepository.GetByEmployerIdAsync(employerId, cancellationToken);
+                var viewModel = new MyJobsViewModel
+                {
+                    Jobs = jobs.Select(j => new JobPostingSummaryViewModel
+                    {
+                        Id = j.Id,
+                        Title = j.Title,
+                        Location = j.Location,
+                        JobType = j.JobType,
+                        SalaryMin = j.SalaryMin,
+                        SalaryMax = j.SalaryMax,
+                        PostedDateUtc = j.PostedDateUtc,
+                        CompanyName = string.Empty // not needed on this view
+                    }).ToList()
+                };
+                return View(viewModel);
+            }
+            catch (RepositoryException ex)
+            {
+                _logger.LogError(ex, "Failed to load postings for employer {EmployerId}", employerId);
+                TempData["ErrorMessage"] = "We couldn't load your job postings right now.";
+                return View(new MyJobsViewModel());
+            }
+        }
+
+        // ============================================================
+        // GET: /Job/Edit/5
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> Edit(int id, CancellationToken cancellationToken)
+        {
+            var job = await _jobRepository.GetByIdAsync(id, cancellationToken);
+            if (job is null)
+                return NotFound();
+
+            var employerId = _userManager.GetUserId(User)!;
+            if (job.EmployerId != employerId)
+                return Forbid(); // not this employer's listing
+
+            var viewModel = new JobEditViewModel
+            {
+                Id = job.Id,
+                Title = job.Title,
+                Description = job.Description,
+                Location = job.Location,
+                JobType = job.JobType,
+                SalaryMin = job.SalaryMin,
+                SalaryMax = job.SalaryMax,
+                ApplicationDeadlineUtc = job.ApplicationDeadlineUtc,
+                IsActive = job.IsActive,
+                JobTypeOptions = GetJobTypeSelectList()
+            };
+
+            return View(viewModel);
+        }
+
+        // ============================================================
+        // POST: /Job/Edit/5
+        // ============================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> Edit(JobEditViewModel model, CancellationToken cancellationToken)
+        {
+            if (!ModelState.IsValid)
+            {
+                model.JobTypeOptions = GetJobTypeSelectList();
+                return View(model);
+            }
+
+            var job = await _jobRepository.GetByIdAsync(model.Id, cancellationToken);
+            if (job is null)
+                return NotFound();
+
+            var employerId = _userManager.GetUserId(User)!;
+            if (job.EmployerId != employerId)
+                return Forbid();
+
+            job.Title = model.Title;
+            job.Description = model.Description;
+            job.Location = model.Location;
+            job.JobType = model.JobType;
+            job.SalaryMin = model.SalaryMin;
+            job.SalaryMax = model.SalaryMax;
+            job.ApplicationDeadlineUtc = model.ApplicationDeadlineUtc;
+            job.IsActive = model.IsActive;
+
+            try
+            {
+                await _jobRepository.UpdateAsync(job, cancellationToken);
+                TempData["SuccessMessage"] = "Job listing updated successfully.";
+                return RedirectToAction(nameof(MyJobs));
+            }
+            catch (RepositoryException ex)
+            {
+                _logger.LogError(ex, "Failed to update Job {JobId}", model.Id);
+                ModelState.AddModelError(string.Empty, "We couldn't save your changes. Please try again.");
+                model.JobTypeOptions = GetJobTypeSelectList();
+                return View(model);
+            }
+        }
+
+        // ============================================================
+        // GET: /Job/Applicants/5 — review submissions for one job.
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> Applicants(int id, CancellationToken cancellationToken)
+        {
+            var job = await _jobRepository.GetByIdAsync(id, cancellationToken);
+            if (job is null)
+                return NotFound();
+
+            var employerId = _userManager.GetUserId(User)!;
+            if (job.EmployerId != employerId)
+                return Forbid();
+
+            try
+            {
+                var applications = await _jobApplicationRepository.GetByJobPostingIdAsync(id, cancellationToken);
+
+                var viewModel = new ApplicantsViewModel
+                {
+                    JobPostingId = id,
+                    JobTitle = job.Title,
+                    Applicants = applications.Select(a => new ApplicantViewModel
+                    {
+                        ApplicationId = a.Id,
+                        CandidateName = a.Candidate?.FullName ?? "Unknown",
+                        CandidateEmail = a.Candidate?.Email ?? "N/A",
+                        ResumeUrl = a.ResumeUrl,
+                        CoverLetter = a.CoverLetter,
+                        AppliedDateUtc = a.AppliedDateUtc,
+                        Status = a.Status
+                    }).ToList()
+                };
+
+                return View(viewModel);
+            }
+            catch (RepositoryException ex)
+            {
+                _logger.LogError(ex, "Failed to load applicants for Job {JobId}", id);
+                TempData["ErrorMessage"] = "We couldn't load applicants right now.";
+                return RedirectToAction(nameof(MyJobs));
+            }
+        }
+
+        // ============================================================
+        // POST: /Job/UpdateApplicationStatus
+        // ============================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Employer")]
+        public async Task<IActionResult> UpdateApplicationStatus(
+            UpdateApplicationStatusViewModel model, CancellationToken cancellationToken)
+        {
+            var employerId = _userManager.GetUserId(User)!;
+
+            try
+            {
+                await _jobApplicationRepository.UpdateStatusAsync(
+                    model.ApplicationId, model.NewStatus, employerId, cancellationToken);
+
+                TempData["SuccessMessage"] = "Applicant status updated.";
+            }
+            catch (RepositoryException ex)
+            {
+                _logger.LogError(ex, "Failed to update application {ApplicationId} status", model.ApplicationId);
+                TempData["ErrorMessage"] = "We couldn't update that applicant's status.";
+            }
+
+            return RedirectToAction(nameof(Applicants), new { id = model.JobPostingId });
+        }
+
+
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> Index(

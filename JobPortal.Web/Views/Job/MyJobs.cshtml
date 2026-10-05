@@ -1,0 +1,62 @@
+﻿@model JobPortal.Web.Models.ViewModels.MyJobsViewModel
+@{
+    ViewData["Title"] = "My Job Postings";
+}
+
+<div class="container py-4">
+    @if (TempData["SuccessMessage"] is not null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold mb-0">My Job Postings</h3>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i> Post New Job</a>
+    </div>
+
+    @if (!Model.Jobs.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-briefcase display-4 d-block mb-3"></i>
+            <p>You haven't posted any jobs yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Location</th>
+                        <th>Type</th>
+                        <th>Posted</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model.Jobs)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@job.Title</td>
+                            <td>@job.Location</td>
+                            <td><span class="badge bg-primary-subtle text-primary-emphasis">@job.JobType</span></td>
+                            <td class="text-muted small">@job.PostedDateUtc.ToString("MMM dd, yyyy")</td>
+                            <td class="text-end">
+                                <a asp-action="Applicants" asp-route-id="@job.Id" class="btn btn-sm btn-outline-primary">
+                                    Applicants
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@job.Id" class="btn btn-sm btn-outline-secondary">
+                                    Edit
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
