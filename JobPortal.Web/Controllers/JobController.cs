@@ -40,6 +40,46 @@ namespace JobPortal.Web.Controllers
         // ============================================================
         // GET: /Job/MyJobs — Employer's own postings.
         // ============================================================
+
+        // ============================================================
+        // GET: /Job/MyApplications — Candidate's own application history.
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Candidate")]
+        public async Task<IActionResult> MyApplications(CancellationToken cancellationToken)
+        {
+            var candidateId = _userManager.GetUserId(User)!;
+
+            try
+            {
+                var applications = await _jobApplicationRepository.GetByCandidateIdAsync(candidateId, cancellationToken);
+
+                var viewModel = new MyApplicationsViewModel
+                {
+                    Applications = applications.Select(a => new MyApplicationItemViewModel
+                    {
+                        ApplicationId = a.Id,
+                        JobPostingId = a.JobPostingId,
+                        JobTitle = a.JobPosting?.Title ?? "Job no longer available",
+                        CompanyName = a.JobPosting?.Employer?.CompanyName ?? a.JobPosting?.Employer?.FullName ?? "Confidential",
+                        Location = a.JobPosting?.Location ?? "N/A",
+                        AppliedDateUtc = a.AppliedDateUtc,
+                        Status = a.Status,
+                        JobIsStillActive = a.JobPosting?.IsActive ?? false
+                    }).ToList()
+                };
+
+                return View(viewModel);
+            }
+            catch (RepositoryException ex)
+            {
+                _logger.LogError(ex, "Failed to load applications for candidate {CandidateId}", candidateId);
+                TempData["ErrorMessage"] = "We couldn't load your applications right now.";
+                return View(new MyApplicationsViewModel());
+            }
+        }
+
+
         [HttpGet]
         [Authorize(Roles = "Employer")]
         public async Task<IActionResult> MyJobs(CancellationToken cancellationToken)

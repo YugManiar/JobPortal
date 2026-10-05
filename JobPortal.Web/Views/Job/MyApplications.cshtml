@@ -1,0 +1,83 @@
+﻿@model JobPortal.Web.Models.ViewModels.MyApplicationsViewModel
+@using JobPortal.Domain.Enums
+@{
+    ViewData["Title"] = "My Applications";
+}
+
+<div class="container py-4">
+    @if (TempData["ErrorMessage"] is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <h3 class="fw-bold mb-1">My Applications</h3>
+    <p class="text-muted mb-4">
+        @Model.Applications.Count application@(Model.Applications.Count == 1 ? "" : "s") submitted
+    </p>
+
+    @if (!Model.Applications.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-file-earmark-text display-4 d-block mb-3"></i>
+            <p class="mb-3">You haven't applied to any jobs yet.</p>
+            <a asp-action="Index" class="btn btn-primary">Browse Jobs</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Applied</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in Model.Applications)
+                    {
+                        <tr>
+                            <td class="fw-semibold">
+                                @app.JobTitle
+                                @if (!app.JobIsStillActive)
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis ms-1">Closed</span>
+                                }
+                            </td>
+                            <td>@app.CompanyName</td>
+                            <td>@app.Location</td>
+                            <td class="text-muted small">@app.AppliedDateUtc.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                @{
+                                    var badgeClass = app.Status switch
+                                    {
+                                        ApplicationStatus.Submitted => "bg-primary-subtle text-primary-emphasis",
+                                        ApplicationStatus.UnderReview => "bg-warning-subtle text-warning-emphasis",
+                                        ApplicationStatus.Shortlisted => "bg-info-subtle text-info-emphasis",
+                                        ApplicationStatus.Hired => "bg-success-subtle text-success-emphasis",
+                                        ApplicationStatus.Rejected => "bg-danger-subtle text-danger-emphasis",
+                                        _ => "bg-secondary-subtle text-secondary-emphasis"
+                                    };
+                                }
+                                <span class="badge @badgeClass">@app.Status</span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@app.JobPostingId"
+                                   class="btn btn-sm btn-outline-primary">
+                                    View Job
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

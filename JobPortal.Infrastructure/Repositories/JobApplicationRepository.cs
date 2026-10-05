@@ -73,7 +73,7 @@ namespace JobPortal.Infrastructure.Repositories
         }
 
         public async Task<IReadOnlyList<JobApplication>> GetByCandidateIdAsync(
-            string candidateId, CancellationToken cancellationToken = default)
+    string candidateId, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(candidateId))
                 throw new ArgumentException("Candidate id must be provided.", nameof(candidateId));
@@ -82,6 +82,7 @@ namespace JobPortal.Infrastructure.Repositories
             {
                 return await _context.JobApplications
                     .Include(a => a.JobPosting)
+                        .ThenInclude(j => j.Employer)   // ← added this line
                     .AsNoTracking()
                     .Where(a => a.CandidateId == candidateId)
                     .OrderByDescending(a => a.AppliedDateUtc)
