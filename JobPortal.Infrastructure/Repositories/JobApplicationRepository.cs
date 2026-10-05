@@ -1,6 +1,7 @@
 ﻿using JobPortal.Application.Exceptions;
 using JobPortal.Application.Interfaces;
 using JobPortal.Domain.Entities;
+using JobPortal.Domain.Enums;
 using JobPortal.Infrastructure.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -111,6 +112,33 @@ namespace JobPortal.Infrastructure.Repositories
                 throw new RepositoryException("Timed out retrieving applicants.", ex);
             }
         }
+
+        public async Task UpdateStatusAsync(
+    int applicationId, ApplicationStatus newStatus, string employerId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var application = await _context.JobApplications
+                    .Include(a => a.JobPosting)
+                    .FirstOrDefaultAsync(a => a.Id == applicationId, cancellationToken);
+
+                if (application is null)
+                    throw new RepositoryException($"Application {applicationId} was not found.");
+
+                // Ownership check — an employer can only update statuses for jobs they posted.
+                if (application.JobPosting.EmployerId != employerId)
+                    throw new RepositoryException("You do not have permission to update this application.");
+
+                application.Status = newStatus;
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch (SqlException ex) when (IsTimeout(ex))
+            {
+                _logger.LogError(ex, "Database timeout updating application {ApplicationId} status", applicationId);
+                throw new RepositoryException("Timed out updating the application status.", ex);
+            }
+        }
+
 
         private static bool IsTimeout(SqlException ex) => ex.Number is -2 or -1 or 1205;
     }

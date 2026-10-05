@@ -1,0 +1,78 @@
+﻿@model JobPortal.Web.Models.ViewModels.ApplicantsViewModel
+@using JobPortal.Domain.Enums
+@{
+    ViewData["Title"] = "Applicants - " + Model.JobTitle;
+}
+
+<div class="container py-4">
+    @if (TempData["SuccessMessage"] is not null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] is not null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <a asp-action="MyJobs" class="text-decoration-none small text-muted mb-3 d-inline-block">
+        <i class="bi bi-arrow-left"></i> Back to my postings
+    </a>
+
+    <h3 class="fw-bold mb-1">Applicants for @Model.JobTitle</h3>
+    <p class="text-muted mb-4">@Model.Applicants.Count total applicant@(Model.Applicants.Count == 1 ? "" : "s")</p>
+
+    @if (!Model.Applicants.Any())
+    {
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-people display-4 d-block mb-3"></i>
+            <p>No one has applied to this job yet.</p>
+        </div>
+    }
+    else
+    {
+        @foreach (var applicant in Model.Applicants)
+        {
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between flex-wrap">
+                        <div>
+                            <h5 class="fw-semibold mb-1">@applicant.CandidateName</h5>
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-envelope me-1"></i>@applicant.CandidateEmail
+                                <span class="mx-2">·</span>
+                                Applied @applicant.AppliedDateUtc.ToString("MMM dd, yyyy")
+                            </p>
+                            @if (!string.IsNullOrWhiteSpace(applicant.CoverLetter))
+                            {
+                                <p class="small mb-2" style="white-space:pre-line;">@applicant.CoverLetter</p>
+                            }
+                            <a href="@applicant.ResumeUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-earmark-text me-1"></i> View Resume
+                            </a>
+                        </div>
+
+                        <div class="text-end">
+                            <form asp-action="UpdateApplicationStatus" method="post" class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="ApplicationId" value="@applicant.ApplicationId" />
+                                <input type="hidden" name="JobPostingId" value="@Model.JobPostingId" />
+                                <select name="NewStatus" class="form-select form-select-sm">
+                                    @foreach (var status in Enum.GetValues<ApplicationStatus>())
+                                    {
+                                        <option value="@status" selected="@(applicant.Status == status)">@status</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-primary">Update</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
