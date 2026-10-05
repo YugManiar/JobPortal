@@ -1,0 +1,49 @@
+﻿@model JobPortal.Web.Models.ViewModels.JobApplyViewModel
+@{
+    ViewData["Title"] = "Apply - " + Model.JobTitle;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+
+            <a asp-action="Details" asp-route-id="@Model.JobPostingId" class="text-decoration-none small text-muted mb-3 d-inline-block">
+                <i class="bi bi-arrow-left"></i> Back to job details
+            </a>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="fw-bold mb-1">Apply for @Model.JobTitle</h4>
+                    <p class="text-muted mb-4">Attach your resume and an optional cover letter.</p>
+
+                    <form asp-action="Apply" method="post" enctype="multipart/form-data" novalidate>
+                        <input type="hidden" asp-for="JobPostingId" />
+                        <input type="hidden" asp-for="JobTitle" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger d-none-empty"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="ResumeFile" class="form-label fw-semibold"></label>
+                            <input asp-for="ResumeFile" type="file" class="form-control" accept=".pdf,.doc,.docx" />
+                            <span asp-validation-for="ResumeFile" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="CoverLetter" class="form-label fw-semibold"></label>
+                            <textarea asp-for="CoverLetter" class="form-control" rows="6"
+                                      placeholder="Tell the employer why you're a great fit (optional)"></textarea>
+                            <span asp-validation-for="CoverLetter" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-send me-1"></i> Submit Application
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
